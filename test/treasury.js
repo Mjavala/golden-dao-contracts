@@ -5,7 +5,7 @@ const { time } = require("../utilities");
 describe("Treasury contract", function () {
   let Token;
   let governanceToken;
-  let cultToken;
+  let goldToken;
   let governance;
   let swapContract;
   let swap;
@@ -18,7 +18,7 @@ describe("Treasury contract", function () {
 
   beforeEach(async function () {
     // Get the ContractFactory and Signers here.
-    Token = await ethers.getContractFactory("Cult");
+    Token = await ethers.getContractFactory("Gold1");
     governanceToken = await ethers.getContractFactory("GovernorBravoDelegate");
     swapContract = await ethers.getContractFactory("UniswapV2RouterMock");
     treasuryContract = await ethers.getContractFactory("Treasury");
@@ -26,32 +26,32 @@ describe("Treasury contract", function () {
 
     swap = await swapContract.deploy();
 
-    cultToken = await upgrades.deployProxy(Token, [
+    goldToken = await upgrades.deployProxy(Token, [
       owner.address,
       "100000000000000000000000",
     ]);
-    await cultToken.deployed();
+    await goldToken.deployed();
 
     treasury = await upgrades.deployProxy(treasuryContract, [
-      cultToken.address,
+      goldToken.address,
       swap.address,
     ]);
     await treasury.deployed();
 
     governance = await upgrades.deployProxy(governanceToken, [
       addr2.address,
-      cultToken.address,
+      goldToken.address,
       17280,
       1,
       "60000000000000000000000",
       treasury.address,
     ]);
     await governance.deployed();
-    await cultToken.setTreasuryAddress(treasury.address);
+    await goldToken.setTreasuryAddress(treasury.address);
   });
   describe("Deployment", function () {
-    it("Should set the right owner CULT token", async function () {
-      expect(await cultToken.owner()).to.equal(owner.address);
+    it("Should set the right owner GOLD token", async function () {
+      expect(await goldToken.owner()).to.equal(owner.address);
     });
     it("Should set the right owner of governance", async function () {
       expect(await governance.admin()).to.equal(addr2.address);
@@ -60,20 +60,20 @@ describe("Treasury contract", function () {
 
   describe("Check Fees", function () {
     it("0.4 percent should be deducted on transfer from one account to another account", async function () {
-      await cultToken.transfer(addr1.address, 1000);
-      expect(await cultToken.balanceOf(addr1.address)).to.equal(996);
-      expect(await cultToken.balanceOf(treasury.address)).to.equal(4);
+      await goldToken.transfer(addr1.address, 1000);
+      expect(await goldToken.balanceOf(addr1.address)).to.equal(996);
+      expect(await goldToken.balanceOf(treasury.address)).to.equal(4);
     });
     it("No fees for whitelisted", async function () {
-      await cultToken.setWhitelistAddress(addr1.address, true);
-      await cultToken.transfer(addr1.address, 1000);
-      expect(await cultToken.balanceOf(addr1.address)).to.equal(1000);
-      expect(await cultToken.balanceOf(treasury.address)).to.equal(0);
+      await goldToken.setWhitelistAddress(addr1.address, true);
+      await goldToken.transfer(addr1.address, 1000);
+      expect(await goldToken.balanceOf(addr1.address)).to.equal(1000);
+      expect(await goldToken.balanceOf(treasury.address)).to.equal(0);
     });
 
     it("Only owners can whitelist", async function () {
       await expect(
-        cultToken.connect(addr1).setWhitelistAddress(addr1.address, true)
+        goldToken.connect(addr1).setWhitelistAddress(addr1.address, true)
       ).to.be.revertedWith("Ownable: caller is not the owner");
     });
   });
@@ -112,45 +112,45 @@ describe("Treasury contract", function () {
       ).to.be.revertedWith("GovernorBravo::_fundInvestee: treasury only");
     });
     it("Should fund investee ", async function () {
-      await cultToken
+      await goldToken
         .connect(owner)
         .transfer(treasury.address, "40000000000000000000");
-      await cultToken.connect(owner).transfer(addr2.address, "10");
-      expect(await cultToken.balanceOf(addr1.address)).to.equal(
+      await goldToken.connect(owner).transfer(addr2.address, "10");
+      expect(await goldToken.balanceOf(addr1.address)).to.equal(
         "13000000000000000000"
       );
       expect(
-        await cultToken.balanceOf("0x000000000000000000000000000000000000dEaD")
+        await goldToken.balanceOf("0x000000000000000000000000000000000000dEaD")
       ).to.equal("2500000000000000000");
     });
     it("Should fund to other investee ", async function () {
-      await cultToken
+      await goldToken
         .connect(owner)
         .transfer(treasury.address, "40000000000000000000");
-      await cultToken.connect(owner).transfer(addr2.address, "10");
-      await cultToken.connect(owner).transfer(addr2.address, "10");
-      expect(await cultToken.balanceOf(addrs[0].address)).to.equal(
+      await goldToken.connect(owner).transfer(addr2.address, "10");
+      await goldToken.connect(owner).transfer(addr2.address, "10");
+      expect(await goldToken.balanceOf(addrs[0].address)).to.equal(
         "13000000000000000000"
       );
       expect(
-        await cultToken.balanceOf("0x000000000000000000000000000000000000dEaD")
+        await goldToken.balanceOf("0x000000000000000000000000000000000000dEaD")
       ).to.equal("5000000000000000000");
     });
     it("Should update the mapping", async function () {
-      await cultToken
+      await goldToken
         .connect(owner)
         .transfer(treasury.address, "80000000000000000000");
-      await cultToken.connect(owner).transfer(addr2.address, "10");
+      await goldToken.connect(owner).transfer(addr2.address, "10");
       expect(await governance.nextInvesteeFund()).to.equal("1");
-      await cultToken.connect(owner).transfer(addr2.address, "10");
+      await goldToken.connect(owner).transfer(addr2.address, "10");
       expect(await governance.nextInvesteeFund()).to.equal("2");
-      await cultToken.connect(owner).transfer(addr2.address, "10");
+      await goldToken.connect(owner).transfer(addr2.address, "10");
       expect(await governance.nextInvesteeFund()).to.equal("2");
-      expect(await cultToken.balanceOf(addrs[0].address)).to.equal(
+      expect(await goldToken.balanceOf(addrs[0].address)).to.equal(
         "13000000000000000000"
       );
       expect(
-        await cultToken.balanceOf("0x000000000000000000000000000000000000dEaD")
+        await goldToken.balanceOf("0x000000000000000000000000000000000000dEaD")
       ).to.equal("5000000000000000000");
     });
   });
