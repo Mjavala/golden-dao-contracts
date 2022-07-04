@@ -50,6 +50,7 @@ describe("GovernorBravo_Propose", function () {
     });
     await this.maiaToken.initialize(
       this.GOLD.address,
+      this.valar.address,
       ownerAddress,
       startBlock,
       1,
