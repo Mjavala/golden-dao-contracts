@@ -14,19 +14,13 @@ describe("maia contract", function () {
 
   beforeEach(async function () {
     // Get the ContractFactory and Signers here.
-    Token = await ethers.getContractFactory("Gold1");
+    goldToken = await ethers.getContractFactory("Gold1");
     stakeToken = await ethers.getContractFactory("Maia");
     [owner, addr1, addr2, ...addrs] = await ethers.getSigners();
 
     const startBlock = await time.latestBlock();
 
-    goldToken = await upgrades.deployProxy(Token, [owner.address, 100000]);
-    await goldToken.deployed();
-    await goldToken.setTreasuryAddress(owner.address);
-    await goldToken.setWhitelistAddress(addr1.address, true);
-    await goldToken.setWhitelistAddress(addr2.address, true);
-    await goldToken.setWhitelistAddress(addrs[0].address, true);
-    await goldToken.setTax(0);
+    goldToken = await goldToken.deploy();
     maiaToken = await upgrades.deployProxy(stakeToken, [
       goldToken.address,
       owner.address,
@@ -36,9 +30,6 @@ describe("maia contract", function () {
     await maiaToken.deployed();
   });
   describe("Deployment", function () {
-    it("Should set the right owner gold token", async function () {
-      expect(await goldToken.owner()).to.equal(owner.address);
-    });
     it("Should set the right owner of maia", async function () {
       expect(await maiaToken.owner()).to.equal(owner.address);
     });

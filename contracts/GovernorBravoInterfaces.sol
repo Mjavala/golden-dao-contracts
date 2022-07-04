@@ -199,8 +199,6 @@ interface TimelockInterface {
 interface maiaInterface {
     /// @notice Get the past vote of the users
     function getPastVotes(address account, uint blockNumber) external view returns (uint256);
-    /// @notice Top staker
-    function checkHighestStaker(uint256 _pid, address user) external returns (bool);
 }
 
 interface GovernorAlpha {

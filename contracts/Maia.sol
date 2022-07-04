@@ -9,12 +9,13 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeab
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 
 
 contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUpgradeable, ERC20VotesUpgradeable, OwnableUpgradeable, PausableUpgradeable {
     using SafeMathUpgradeable for uint256;
-    using SafeERC20Upgradeable for IERC20Upgradeable;
-    IERC20Upgradeable public gold;
+    IERC20 public gold;
 
     //highest staked users
     struct HighestAstaStaker {
@@ -44,7 +45,7 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
 
     // Info of each pool.
     struct PoolInfo {
-        IERC20Upgradeable lpToken;           // Address of LP token contract.
+        IERC20 lpToken;           // Address of LP token contract.
         uint256 allocPoint;       // How many allocation points assigned to this pool. GOLDs to distribute per block.
         uint256 lastRewardBlock;  // Last block number that GOLDs distribution occurs.
         uint256 accGOLDPerShare; // Accumulated GOLDs per share, times 1e12. See below.
@@ -54,7 +55,7 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
     }
 
     // The GOLD TOKEN!
-    IERC20Upgradeable public GOLD;
+    IERC20 public GOLD;
     // admin address.
     address public adminAddress;
     // Bonus muliplier for early GOLD makers.
@@ -83,7 +84,7 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
     event AdminUpdated(address newAdmin);
 
     function initialize(        
-        IERC20Upgradeable _GOLD,
+        address _GOLD,
         address _adminAddress,
         uint256 _startBlock,
         uint256 _topStakerNumber
@@ -94,7 +95,7 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
         __Pausable_init_unchained();
         ERC20PermitUpgradeable.__ERC20Permit_init("gold");
         ERC20VotesUpgradeable.__ERC20Votes_init_unchained();
-        GOLD = _GOLD;
+        GOLD = IERC20(_GOLD);
         adminAddress = _adminAddress;
         startBlock = _startBlock;
         topStakerNumber = _topStakerNumber;
@@ -106,7 +107,7 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
 
     // Add a new lp to the pool. Can only be called by the owner.
     // XXX DO NOT add the same LP token more than once. Rewards will be messed up if you do.
-    function add(uint256 _allocPoint, IERC20Upgradeable _lpToken, bool _withUpdate) public onlyOwner {
+    function add(uint256 _allocPoint, IERC20 _lpToken, bool _withUpdate) public onlyOwner {
         if (_withUpdate) {
             massUpdatePools();
         }
@@ -277,10 +278,10 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
         if (user.amount > 0) {
 
             uint256 GOLDReward = user.amount.mul(pool.accGOLDPerShare).div(1e12).sub(user.rewargoldDebt);
-            pool.lpToken.safeTransfer(msg.sender, GOLDReward);
+            pool.lpToken.transfer(msg.sender, GOLDReward);
             pool.lastGOLDRewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase));
         }
-        pool.lpToken.safeTransferFrom(address(msg.sender), address(this), _amount);
+        pool.lpToken.transferFrom(address(msg.sender), address(this), _amount);
         totalGOLDStaked = totalGOLDStaked.add(_amount);
         user.amount = user.amount.add(_amount);
         user.rewargoldDebt = user.amount.mul(pool.accGOLDPerShare).div(1e12);
@@ -298,13 +299,13 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
         updatePool(_pid);
 
         uint256 GOLDReward = user.amount.mul(pool.accGOLDPerShare).div(1e12).sub(user.rewargoldDebt);
-        pool.lpToken.safeTransfer(msg.sender, GOLDReward);
+        pool.lpToken.transfer(msg.sender, GOLDReward);
         pool.lastGOLDRewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase));
 
         user.amount = user.amount.sub(_amount);
         totalGOLDStaked = totalGOLDStaked.sub(_amount);
         user.rewargoldDebt = user.amount.mul(pool.accGOLDPerShare).div(1e12);
-        pool.lpToken.safeTransfer(address(msg.sender), _amount);
+        pool.lpToken.transfer(address(msg.sender), _amount);
         removeHighestStakedUser(_pid, user.amount, msg.sender);
         _burn(msg.sender,_amount);
         emit Withdraw(msg.sender, _pid, _amount);
@@ -336,7 +337,7 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
         updatePool(_pid);
         
         uint256 GOLDReward = user.amount.mul(pool.accGOLDPerShare).div(1e12).sub(user.rewargoldDebt);
-        pool.lpToken.safeTransfer(msg.sender, GOLDReward);
+        pool.lpToken.transfer(msg.sender, GOLDReward);
         pool.lastGOLDRewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase));
         
         user.rewargoldDebt = user.amount.mul(pool.accGOLDPerShare).div(1e12);

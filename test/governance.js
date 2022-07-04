@@ -37,12 +37,9 @@ describe("GovernorBravo_Propose", function () {
     [ownerAddress, userAddress1, userAddress2] = accounts;
     delay = new BN(2 * 24 * 60 * 60 * 2);
 
-    this.GOLD = await GOLDToken.new({ from: ownerAddress, gas: 8000000 });
+    this.GOLD = await GOLDToken.new();
     this.valar = await valar.new()
-    this.GOLD.initialize(ownerAddress, "6666666666666666666666666666666", {
-      from: ownerAddress,
-      gas: 8000000,
-    });
+
     this.timelock = await Timelock.new(ownerAddress, delay, {
       from: ownerAddress,
       gas: 8000000,
@@ -61,15 +58,7 @@ describe("GovernorBravo_Propose", function () {
         gas: 8000000,
       }
     );
-    await this.GOLD.setWhitelistAddress(ownerAddress, true, {
-      from: ownerAddress,
-    });
-    await this.GOLD.setWhitelistAddress(userAddress1, true, {
-      from: ownerAddress,
-    });
-    await this.GOLD.setWhitelistAddress(userAddress2, true, {
-      from: ownerAddress,
-    });
+
     await this.maiaToken.add(100, this.GOLD.address, true, {
       from: ownerAddress,
       gas: 8000000,
@@ -87,6 +76,7 @@ describe("GovernorBravo_Propose", function () {
       from: userAddress1,
       gas: 8000000,
     });
+    
     await this.maiaToken.deposit(0, 1000, {
       from: ownerAddress,
       gas: 8000000,
@@ -125,7 +115,7 @@ describe("GovernorBravo_Propose", function () {
       gas: 8000000,
     });
     await this.gov._AcceptTimelockAdmin({ from: ownerAddress, gas: 8000000 });
-    await this.GOLD.delegate(userAddress1, { from: ownerAddress });
+    // TODO check: await this.GOLD.delegate(userAddress1, { from: ownerAddress });
 
     targets = [ownerAddress];
     values = ["0"];
