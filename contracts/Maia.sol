@@ -268,29 +268,6 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
         quickSort(_pid, 0, highestStaker.length - 1);
     }
 
-    /**
-    @notice GOLD staking track the Highest 50 staked users
-    @param _pid : pool id
-    @param user : user address
-    @dev Description :
-    DAO governance will be performed by the top 50 wallets with the highest amount of staked GOLD tokens. 
-    */
-    function checkHighestStaker(uint256 _pid, address user)
-        public
-        view
-        returns (bool)
-    {
-        HighestAstaStaker[] storage highestStaker = highestStakerInPool[_pid];
-        uint256 i = 0;
-        // Applied the loop to check the user in the highest staker list.
-        for (i; i < highestStaker.length; i++) {
-            if (highestStaker[i].addr == user) {
-                // If user is exists in the list then we return true otherwise false.
-                return true;
-            }
-        }
-    }
-
     // Deposit GOLD tokens to MasterChef.
     function deposit(uint256 _pid, uint256 _amount) public {
         PoolInfo storage pool = poolInfo[_pid];
@@ -421,7 +398,6 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
     }
 
     function _delegate(address delegator, address delegatee) internal virtual override {
-        require(!checkHighestStaker(0, delegator),"Top staker cannot delegate");
         super._delegate(delegator,delegatee);
     }
 

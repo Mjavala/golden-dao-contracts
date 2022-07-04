@@ -8,6 +8,7 @@ const {
 } = require("@openzeppelin/test-helpers");
 const { expect } = require("chai");
 const { signTypedData } = require("eth-sig-util");
+const { artifacts } = require("hardhat");
 const { time } = require("../utilities");
 
 const {
@@ -24,6 +25,7 @@ const GovernorBravoDelegate = artifacts.require("GovernorBravoDelegate");
 const GOLDToken = artifacts.require("Gold1");
 const Timelock = artifacts.require("Timelock");
 const maiaToken = artifacts.require("Maia");
+const valar = artifacts.require("Valar");
 
 describe("GovernorBravo_Propose", function () {
   let trivialProposal, targets, values, signatures, callDatas, delay;
@@ -36,6 +38,7 @@ describe("GovernorBravo_Propose", function () {
     delay = new BN(2 * 24 * 60 * 60 * 2);
 
     this.GOLD = await GOLDToken.new({ from: ownerAddress, gas: 8000000 });
+    this.valar = await valar.new()
     this.GOLD.initialize(ownerAddress, "6666666666666666666666666666666", {
       from: ownerAddress,
       gas: 8000000,
@@ -113,6 +116,7 @@ describe("GovernorBravo_Propose", function () {
       1,
       "60000000000000000000000",
       userAddress2,
+      this.valar.address,
       { from: ownerAddress, gas: 8000000 }
     );
     // await this.GOLD.mint(ownerAddress, "1000000000000000000000000", {from: ownerAddress, gas: 8000000})
@@ -127,6 +131,9 @@ describe("GovernorBravo_Propose", function () {
     values = ["0"];
     signatures = ["getBalanceOf(address)"];
     callDatas = [encodeParameters(["address"], [userAddress1])];
+
+    await this.valar.mint(ownerAddress, 1);
+
     await this.gov.propose(
       targets,
       values,
@@ -151,7 +158,7 @@ describe("GovernorBravo_Propose", function () {
           "do nothing",
           { from: userAddress1, gas: 8000000 }
         ),
-        "GovernorBravo::propose: only top staker"
+        "GovernorBravo::propose: only valar"
       );
     });
   });
@@ -211,7 +218,7 @@ describe("GovernorBravo_Propose", function () {
             "do nothing",
             { from: userAddress1, gas: 8000000 }
           ),
-          "GovernorBravo::propose: only top staker"
+          "GovernorBravo::propose: only valar"
         );
 
         await expectRevert(

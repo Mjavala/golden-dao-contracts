@@ -93,11 +93,6 @@ describe("maia contract", function () {
       await maiaToken.connect(owner).withdraw(0, 100);
       expect(await maiaToken.getVotes(addr1.address)).to.equal(700);
     });
-    it("Should revert if top staker tries to delegate", async function () {
-      await expect(
-        maiaToken.connect(addr1).delegate(addr1.address)
-      ).to.be.revertedWith("Top staker cannot delegate");
-    });
   });
 
   describe("Check maia ERC20 token", function () {
@@ -144,71 +139,6 @@ describe("maia contract", function () {
           .connect(addr1)
           .transfer("0x0000000000000000000000000000000000000000", 900)
       ).to.be.revertedWith("ERC20: transfer to the zero address");
-    });
-  });
-  describe("Check top stakers", function () {
-    beforeEach(async function () {
-      await maiaToken.connect(owner).add(100, goldToken.address, true);
-      await goldToken.connect(owner).transfer(addr1.address, 1000);
-      await goldToken.connect(addr1).approve(maiaToken.address, 1000);
-      await maiaToken.connect(addr1).deposit(0, 1000);
-    });
-    it("First User should have should be highest staker", async function () {
-      expect(await maiaToken.checkHighestStaker(0, addr1.address)).to.equal(
-        true
-      );
-    });
-
-    it("All user under the limit should be top staker", async function () {
-      await goldToken.connect(owner).transfer(addr2.address, 2000);
-      await goldToken.connect(addr2).approve(maiaToken.address, 2000);
-      await maiaToken.connect(addr2).deposit(0, 2000);
-
-      expect(await maiaToken.checkHighestStaker(0, addr2.address)).to.equal(
-        true
-      );
-    });
-
-    it("User with more amount should remove the user with less staked amount", async function () {
-      await goldToken.connect(owner).transfer(addr2.address, 2000);
-      await goldToken.connect(addr2).approve(maiaToken.address, 2000);
-      await maiaToken.connect(addr2).deposit(0, 2000);
-
-      await goldToken.connect(owner).transfer(addrs[0].address, 2000);
-      await goldToken.connect(addrs[0]).approve(maiaToken.address, 2000);
-      await maiaToken.connect(addrs[0]).deposit(0, 2000);
-
-      expect(await maiaToken.checkHighestStaker(0, addr1.address)).to.equal(
-        false
-      );
-      expect(await maiaToken.checkHighestStaker(0, addr2.address)).to.equal(
-        true
-      );
-      expect(await maiaToken.checkHighestStaker(0, addrs[0].address)).to.equal(
-        true
-      );
-    });
-
-    it("User shoul be removed from top staker list on withdrawal", async function () {
-      await goldToken.connect(owner).transfer(addr2.address, 2000);
-      await goldToken.connect(addr2).approve(maiaToken.address, 2000);
-      await maiaToken.connect(addr2).deposit(0, 2000);
-
-      await goldToken.connect(owner).transfer(addrs[0].address, 2000);
-      await goldToken.connect(addrs[0]).approve(maiaToken.address, 2000);
-      await maiaToken.connect(addrs[0]).deposit(0, 2000);
-
-      await maiaToken.connect(addr2).withdraw(0, 2000);
-
-      expect(await maiaToken.checkHighestStaker(0, addr1.address)).to.equal(
-        false
-      );
-      expect(await maiaToken.checkHighestStaker(0, addr2.address)).to.equal(
-        false
-      );
-      expect(await maiaToken.checkHighestStaker(0, addrs[0].address)).to.equal(
-        true
-      );
     });
   });
   describe("Check gold distribution with one user", function () {

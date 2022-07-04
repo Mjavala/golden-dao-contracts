@@ -2,10 +2,9 @@
 pragma solidity ^0.8.4;
 
 import "./ERC20.sol";
-import "./ERC20Burnable.sol";
 import "./Ownable.sol";
 
-contract MyToken is ERC20, ERC20Burnable, Ownable {
+contract Valar is ERC20, Ownable {
     constructor() ERC20("MyToken", "MTK") {}
 
     function mint(address to, uint256 amount) public onlyOwner {

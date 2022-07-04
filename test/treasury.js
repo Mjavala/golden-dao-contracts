@@ -1,5 +1,5 @@
 const { expect } = require("chai");
-const { upgrades } = require("hardhat");
+const { upgrades, ethers } = require("hardhat");
 const { time } = require("../utilities");
 
 describe("Treasury contract", function () {
@@ -15,6 +15,7 @@ describe("Treasury contract", function () {
   let addr1;
   let addr2;
   let addrs;
+  let valar;
 
   beforeEach(async function () {
     // Get the ContractFactory and Signers here.
@@ -22,6 +23,9 @@ describe("Treasury contract", function () {
     governanceToken = await ethers.getContractFactory("GovernorBravoDelegate");
     swapContract = await ethers.getContractFactory("UniswapV2RouterMock");
     treasuryContract = await ethers.getContractFactory("Treasury");
+    valar = await ethers.getContractFactory("Valar");
+
+    valar = await valar.deploy();
     [owner, addr1, addr2, ...addrs] = await ethers.getSigners();
 
     swap = await swapContract.deploy();
@@ -45,6 +49,7 @@ describe("Treasury contract", function () {
       1,
       "60000000000000000000000",
       treasury.address,
+      valar.address
     ]);
     await governance.deployed();
     await goldToken.setTreasuryAddress(treasury.address);

@@ -5,6 +5,8 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "./GovernorBravoInterfaces.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 
 contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDelegateStorageV2, GovernorBravoEvents {
     /// @notice Address of Investee.
@@ -52,6 +54,8 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
     /// @notice The EIP-712 typehash for the ballot struct used by the contract
     bytes32 public constant BALLOT_TYPEHASH = keccak256("Ballot(uint256 proposalId,uint8 support)");
 
+    IERC20 valar;
+
     /**
       * @notice Used to initialize the contract during delegator constructor
       * @param timelock_ The address of the Timelock
@@ -60,10 +64,11 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
       * @param votingDelay_ The initial voting delay
       * @param proposalThreshold_ The initial proposal threshold
       */
-    function initialize(address timelock_, address maia_, uint votingPeriod_, uint votingDelay_, uint proposalThreshold_, address treasury_) public initializer{
+    function initialize(address timelock_, address maia_, uint votingPeriod_, uint votingDelay_, uint proposalThreshold_, address treasury_, address valar_) public initializer{
         require(address(timelock) == address(0), "GovernorBravo::initialize: can only initialize once");
         require(timelock_ != address(0), "GovernorBravo::initialize: invalid timelock address");
         require(maia_ != address(0), "GovernorBravo::initialize: invalid maia address");
+        require(valar_ != address(0), "GovernorBravo::initialize: invalid maia address");
         require(votingPeriod_ >= MIN_VOTING_PERIOD && votingPeriod_ <= MAX_VOTING_PERIOD, "GovernorBravo::initialize: invalid voting period");
         require(votingDelay_ >= MIN_VOTING_DELAY && votingDelay_ <= MAX_VOTING_DELAY, "GovernorBravo::initialize: invalid voting delay");
         require(proposalThreshold_ >= MIN_PROPOSAL_THRESHOLD && proposalThreshold_ <= MAX_PROPOSAL_THRESHOLD, "GovernorBravo::initialize: invalid proposal threshold");
@@ -71,6 +76,7 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
 
         timelock = TimelockInterface(timelock_);
         maia = maiaInterface(maia_);
+        valar = IERC20(valar_);
         votingPeriod = votingPeriod_;
         votingDelay = votingDelay_;
         proposalThreshold = proposalThreshold_;
@@ -89,7 +95,7 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
       */
     function propose(address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas, string memory description) public returns (uint) {
         // Allow addresses above proposal threshold and whitelisted addresses to propose
-        require(maia.checkHighestStaker(0,msg.sender),"GovernorBravo::propose: only top staker");
+        require(valar.balanceOf(msg.sender) > 0,"GovernorBravo::propose: only valar");
         require(targets.length == values.length && targets.length == signatures.length && targets.length == calldatas.length, "GovernorBravo::propose: proposal function information arity mismatch");
         require(targets.length != 0, "GovernorBravo::propose: must provide actions");
         require(targets.length <= proposalMaxOperations, "GovernorBravo::propose: too many actions");
@@ -269,7 +275,6 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
       * @return The number of votes cast
       */
     function castVoteInternal(address voter, uint proposalId, uint8 support) internal returns (uint256) {
-        require(!maia.checkHighestStaker(0,msg.sender),"GovernorBravo::castVoteInternal: Top staker cannot vote");
         require(state(proposalId) == ProposalState.Active, "GovernorBravo::castVoteInternal: voting is closed");
         require(support <= 2, "GovernorBravo::castVoteInternal: invalid vote type");
         Proposal storage proposal = proposals[proposalId];
