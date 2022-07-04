@@ -981,8 +981,8 @@
       ]
     },
     "/Users/elo/Code/golden-dao-contracts/contracts/Maia.sol": {
-      "lastModificationDate": 1656914201235,
-      "contentHash": "9991d8243e5b21485163dd9492c94742",
+      "lastModificationDate": 1656915077712,
+      "contentHash": "9047575a377b76a3d6aa36884ab37546",
       "sourceName": "contracts/Maia.sol",
       "solcConfig": {
         "version": "0.8.2",

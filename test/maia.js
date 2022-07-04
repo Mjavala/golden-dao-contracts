@@ -85,11 +85,19 @@ describe("maia contract", function () {
     });
     it("User votes will reduce on withdraw ", async function () {
       await maiaToken.connect(owner).delegate(addr1.address);
+
+      await network.provider.send("evm_increaseTime", [604800]);
+      await network.provider.send("evm_mine");
+
       await maiaToken.connect(owner).withdraw(0, 100);
       expect(await maiaToken.getVotes(addr1.address)).to.equal(700);
     });
     it("Delegated user votes will reduce on withdraw ", async function () {
       await maiaToken.connect(owner).delegate(addr1.address);
+
+      await network.provider.send("evm_increaseTime", [604800]);
+      await network.provider.send("evm_mine");
+
       await maiaToken.connect(owner).withdraw(0, 100);
       expect(await maiaToken.getVotes(addr1.address)).to.equal(700);
     });
@@ -119,6 +127,9 @@ describe("maia contract", function () {
       expect(await maiaToken.balanceOf(addr2.address)).to.equal(1000);
     });
     it("maia token should be burned on withdraw", async function () {
+      await network.provider.send("evm_increaseTime", [604800]);
+      await network.provider.send("evm_mine");
+
       await maiaToken.connect(addr1).withdraw(0, 100);
       expect(await maiaToken.balanceOf(addr1.address)).to.equal(900);
       expect(await maiaToken.totalSupply()).to.equal(900);
@@ -238,6 +249,10 @@ describe("maia contract", function () {
       expect(await maiaToken.pendingGOLD(0, addr2.address)).to.equal(500);
       const beforeClaimBalance = await goldToken.balanceOf(addr2.address);
       expect(beforeClaimBalance).to.equal(0);
+
+      await network.provider.send("evm_increaseTime", [604800]);
+      await network.provider.send("evm_mine");
+
       await maiaToken.connect(addr2).withdraw(0, 1000);
       const afterClaimBalance = await goldToken.balanceOf(addr2.address);
       expect(afterClaimBalance).to.equal(1500);
@@ -272,6 +287,9 @@ describe("maia contract", function () {
       const afterClaimBalance = await goldToken.balanceOf(addrs[0].address);
       expect(afterClaimBalance).to.equal(1000);
 
+      await network.provider.send("evm_increaseTime", [604800]);
+      await network.provider.send("evm_mine");
+      
       await maiaToken.connect(addrs[0]).withdraw(0, 1000);
       await goldToken.connect(owner).transfer(maiaToken.address, 3000);
       expect(await maiaToken.pendingGOLD(0, addr1.address)).to.equal(2000);
