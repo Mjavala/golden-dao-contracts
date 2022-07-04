@@ -894,7 +894,7 @@
       ]
     },
     "/Users/elo/Code/golden-dao-contracts/contracts/treasury.sol": {
-      "lastModificationDate": 1656913754533,
+      "lastModificationDate": 1656971325427,
       "contentHash": "aaa331117c8c99fe830f9f846580ba71",
       "sourceName": "contracts/treasury.sol",
       "solcConfig": {
@@ -976,8 +976,8 @@
       ]
     },
     "/Users/elo/Code/golden-dao-contracts/contracts/Maia.sol": {
-      "lastModificationDate": 1656925806359,
-      "contentHash": "084b487d2bd33144d7090bbab345e110",
+      "lastModificationDate": 1656971800245,
+      "contentHash": "2d093593b80a7084dcb37245a56e6dca",
       "sourceName": "contracts/Maia.sol",
       "solcConfig": {
         "version": "0.8.2",
@@ -1060,7 +1060,7 @@
       ]
     },
     "/Users/elo/Code/golden-dao-contracts/contracts/timelock.sol": {
-      "lastModificationDate": 1656913754533,
+      "lastModificationDate": 1656971325427,
       "contentHash": "8eb4bc72f2b9dd26c8dce55bf1c59192",
       "sourceName": "contracts/timelock.sol",
       "solcConfig": {
@@ -1099,7 +1099,7 @@
       ]
     },
     "/Users/elo/Code/golden-dao-contracts/contracts/governance.sol": {
-      "lastModificationDate": 1656914231610,
+      "lastModificationDate": 1656971325427,
       "contentHash": "bd8fbf55ef93530c60f9be7bff9005df",
       "sourceName": "contracts/governance.sol",
       "solcConfig": {
@@ -1139,7 +1139,7 @@
       ]
     },
     "/Users/elo/Code/golden-dao-contracts/contracts/GovernorBravoInterfaces.sol": {
-      "lastModificationDate": 1656915437081,
+      "lastModificationDate": 1656971325426,
       "contentHash": "45d089f4696f7ba5384fb88196d9da1f",
       "sourceName": "contracts/GovernorBravoInterfaces.sol",
       "solcConfig": {

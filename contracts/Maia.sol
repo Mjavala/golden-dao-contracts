@@ -142,7 +142,7 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
         uint256 accGOLDPerShare = pool.accGOLDPerShare;
         uint256 lpSupply = totalGOLDStaked;
         if (block.number > pool.lastRewardBlock && lpSupply != 0) {
-            uint256 rewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase));
+            uint256 rewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase)).mul(90).div(100);
             uint256 _totalReward = rewardBalance.sub(pool.lastGOLDRewardBalance);
             accGOLDPerShare = accGOLDPerShare.add(_totalReward.mul(1e12).div(lpSupply));
         }
@@ -169,11 +169,6 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
         return rewardBalance;
     }
 
-    function getTS(uint _pid) external view returns (uint) {
-        PoolInfo storage pool = poolInfo[_pid];
-        return pool.lpToken.balanceOf(address(this));
-    }
-
     // Update reward variables of the given pool to be up-to-date.
     function updatePool(uint256 _pid) public {
         PoolInfo storage pool = poolInfo[_pid];
@@ -182,7 +177,7 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
         if (block.number <= pool.lastRewardBlock) {
             return;
         }
-        uint256 rewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase));
+        uint256 rewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase)).mul(90).div(100);
         uint256 _totalReward = pool.totalGOLDReward.add(rewardBalance.sub(pool.lastGOLDRewardBalance));
         pool.lastGOLDRewardBalance = rewardBalance;
         pool.totalGOLDReward = _totalReward;
@@ -212,7 +207,7 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
 
             uint256 GOLDReward = user.amount.mul(pool.accGOLDPerShare).div(1e12).sub(user.rewargoldDebt);
             pool.lpToken.transfer(msg.sender, GOLDReward);
-            pool.lastGOLDRewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase));
+            pool.lastGOLDRewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase)).mul(90).div(100);
         }
         uint256 taxAdjustedAmount = _amount.sub(_amount.mul(4).div(100));
 
@@ -236,7 +231,7 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
 
         uint256 GOLDReward = user.amount.mul(pool.accGOLDPerShare).div(1e12).sub(user.rewargoldDebt);
         if (GOLDReward > 0) pool.lpToken.transfer(msg.sender, GOLDReward);
-        pool.lastGOLDRewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase));
+        pool.lastGOLDRewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase)).mul(90).div(100);
 
         user.amount = user.amount.sub(taxAdjustedAmount);
         totalGOLDStaked = totalGOLDStaked.sub(taxAdjustedAmount);
@@ -262,7 +257,7 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
         
         uint256 GOLDReward = user.amount.mul(pool.accGOLDPerShare).div(1e12).sub(user.rewargoldDebt);
         if (GOLDReward > 0) pool.lpToken.transfer(msg.sender, GOLDReward);
-        pool.lastGOLDRewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase));
+        pool.lastGOLDRewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase)).mul(90).div(100);
         
         user.rewargoldDebt = user.amount.mul(pool.accGOLDPerShare).div(1e12);
     }
