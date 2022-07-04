@@ -17,13 +17,6 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
     using SafeMathUpgradeable for uint256;
     IERC20 public gold;
 
-    //highest staked users
-    struct HighestAstaStaker {
-        uint256 deposited;
-        address addr;
-    }
-    mapping(uint256 => HighestAstaStaker[]) public highestStakerInPool;
-
     // Info of each user.
     struct UserInfo {
         uint256 amount;     // How many LP tokens the user has provided.
@@ -193,83 +186,6 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
         pool.lastTotalGOLDReward = _totalReward;
     }
 
-    /**
-    @notice Sorting the highest GOLD staker in pool
-    @param _pid : pool id
-    @param left : left
-    @param right : right
-    @dev Description :
-        It is used for sorting the highest GOLD staker in pool. This function definition is marked
-        "internal" because this function is called only from inside the contract.
-    */
-    function quickSort(
-        uint256 _pid,
-        uint256 left,
-        uint256 right
-    ) internal {
-        HighestAstaStaker[] storage arr = highestStakerInPool[_pid];
-        if (left >= right) return;
-        uint256 divtwo = 2;
-        uint256 p = arr[(left + right) / divtwo].deposited; // p = the pivot element
-        uint256 i = left;
-        uint256 j = right;
-        while (i < j) {
-            // HighestAstaStaker memory a;
-            // HighestAstaStaker memory b;
-            while (arr[i].deposited < p) ++i;
-            while (arr[j].deposited > p) --j; // arr[j] > p means p still to the left, so j > 0
-            if (arr[i].deposited > arr[j].deposited) {
-                (arr[i].deposited, arr[j].deposited) = (
-                    arr[j].deposited,
-                    arr[i].deposited
-                );
-                (arr[i].addr, arr[j].addr) = (arr[j].addr, arr[i].addr);
-            } else ++i;
-        }
-        // Note --j was only done when a[j] > p.  So we know: a[j] == p, a[<j] <= p, a[>j] > p
-        if (j > left) quickSort(_pid, left, j - 1); // j > left, so j > 0
-        quickSort(_pid, j + 1, right);
-    }
-    /**
-    @notice store Highest 50 staked users
-    @param _pid : pool id
-    @param _amount : amount
-    @dev Description :
-    DAO governance will be performed by the top 50 wallets with the highest amount of staked GOLD tokens.
-    */
-    function addHighestStakedUser(
-        uint256 _pid,
-        uint256 _amount,
-        address user
-    ) private {
-        uint256 i;
-        // Getting the array of Highest staker as per pool id.
-        HighestAstaStaker[] storage highestStaker = highestStakerInPool[_pid];
-        //for loop to check if the staking address exist in array
-        for (i = 0; i < highestStaker.length; i++) {
-            if (highestStaker[i].addr == user) {
-                highestStaker[i].deposited = _amount;
-                // Called the function for sorting the array in ascending order.
-                quickSort(_pid, 0, highestStaker.length - 1);
-                return;
-            }
-        }
-
-        if (highestStaker.length < topStakerNumber) {
-            // Here if length of highest staker is less than 100 than we just push the object into array.
-            highestStaker.push(HighestAstaStaker(_amount, user));
-        } else {
-            // Otherwise we check the last staker amount in the array with new one.
-            if (highestStaker[0].deposited < _amount) {
-                // If the last staker deposited amount is less than new then we put the greater one in the array.
-                highestStaker[0].deposited = _amount;
-                highestStaker[0].addr = user;
-            }
-        }
-        // Called the function for sorting the array in ascending order.
-        quickSort(_pid, 0, highestStaker.length - 1);
-    }
-
     // Deposit GOLD tokens to MasterChef.
     function deposit(uint256 _pid, uint256 _amount) public {
         PoolInfo storage pool = poolInfo[_pid];
@@ -286,7 +202,6 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
         user.amount = user.amount.add(_amount);
         user.rewargoldDebt = user.amount.mul(pool.accGOLDPerShare).div(1e12);
         user.stakeEnd = block.timestamp + 7 days;
-        addHighestStakedUser(_pid, user.amount, msg.sender);
         _mint(msg.sender,_amount);
         emit Deposit(msg.sender, _pid, _amount);
     }
@@ -299,36 +214,24 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
         updatePool(_pid);
 
         uint256 GOLDReward = user.amount.mul(pool.accGOLDPerShare).div(1e12).sub(user.rewargoldDebt);
-        pool.lpToken.transfer(msg.sender, GOLDReward);
+        if (GOLDReward > 0) pool.lpToken.transfer(msg.sender, GOLDReward);
         pool.lastGOLDRewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase));
 
         user.amount = user.amount.sub(_amount);
         totalGOLDStaked = totalGOLDStaked.sub(_amount);
         user.rewargoldDebt = user.amount.mul(pool.accGOLDPerShare).div(1e12);
         pool.lpToken.transfer(address(msg.sender), _amount);
-        removeHighestStakedUser(_pid, user.amount, msg.sender);
         _burn(msg.sender,_amount);
         emit Withdraw(msg.sender, _pid, _amount);
     }
 
-    // Update the staker details in case of withdrawal
-    function removeHighestStakedUser(uint256 _pid, uint256 _amount, address user) private {
-        // Getting Highest staker list as per the pool id
-        HighestAstaStaker[] storage highestStaker = highestStakerInPool[_pid];
-        // Applied this loop is just to find the staker
-        for (uint256 i = 0; i < highestStaker.length; i++) {
-            if (highestStaker[i].addr == user) {
-                // Deleting the staker from the array.
-                delete highestStaker[i];
-                if(_amount > 0) {
-                    // If amount is greater than 0 than we need to add this again in the highest staker list.
-                    addHighestStakedUser(_pid, _amount, user);
-                }
-                return;
-            }
-        }
+    function getPool(uint256 _pid) external view returns (PoolInfo memory) {
+        return poolInfo[_pid]; 
     }
 
+    function getUser(uint256 _pid, address _user) external view returns (UserInfo memory) {
+        return userInfo[_pid][_user]; 
+    }
     
     // Earn GOLD tokens to MasterChef.
     function claimGOLD(uint256 _pid) public {
@@ -337,7 +240,7 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
         updatePool(_pid);
         
         uint256 GOLDReward = user.amount.mul(pool.accGOLDPerShare).div(1e12).sub(user.rewargoldDebt);
-        pool.lpToken.transfer(msg.sender, GOLDReward);
+        if (GOLDReward > 0) pool.lpToken.transfer(msg.sender, GOLDReward);
         pool.lastGOLDRewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase));
         
         user.rewargoldDebt = user.amount.mul(pool.accGOLDPerShare).div(1e12);

@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/elo/Code/golden-dao-contracts/contracts/Gold1.sol": {
-      "lastModificationDate": 1656915956434,
-      "contentHash": "544ee0d8e8231b167150641298a48d0b",
+      "lastModificationDate": 1656921557005,
+      "contentHash": "5891c45cdae69fdda7fb20886b4c0723",
       "sourceName": "contracts/Gold1.sol",
       "solcConfig": {
         "version": "0.8.4",
@@ -28,14 +28,18 @@
           }
         }
       },
-      "imports": [
-        "@openzeppelin/contracts/token/ERC20/ERC20.sol"
-      ],
+      "imports": [],
       "versionPragmas": [
         "^0.8.4"
       ],
       "artifacts": [
-        "Gold1"
+        "Context",
+        "Gold1",
+        "IERC20",
+        "IUniswapV2Factory",
+        "IUniswapV2Router02",
+        "Ownable",
+        "SafeMath"
       ]
     },
     "/Users/elo/Code/golden-dao-contracts/node_modules/@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol": {
@@ -972,8 +976,8 @@
       ]
     },
     "/Users/elo/Code/golden-dao-contracts/contracts/Maia.sol": {
-      "lastModificationDate": 1656915932945,
-      "contentHash": "3dac97ec279de6e45b7fedbd64b8ef55",
+      "lastModificationDate": 1656920780861,
+      "contentHash": "f79d5c6a308b10da5da556cb8aa2fed8",
       "sourceName": "contracts/Maia.sol",
       "solcConfig": {
         "version": "0.8.2",
