@@ -28,6 +28,7 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
         uint256 amount;     // How many LP tokens the user has provided.
         uint256 rewardDebt; // Reward debt. See explanation below.
         uint256 rewargoldDebt; // Reward debt in GOLD.
+        uint256 stakeEnd;
         //
         // We do some fancy math here. Basically, any point in time, the amount of GOLD
         // entitled to a user but is pending to be distributed is:
@@ -283,6 +284,7 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
         totalGOLDStaked = totalGOLDStaked.add(_amount);
         user.amount = user.amount.add(_amount);
         user.rewargoldDebt = user.amount.mul(pool.accGOLDPerShare).div(1e12);
+        user.stakeEnd = block.timestamp + 7 days;
         addHighestStakedUser(_pid, user.amount, msg.sender);
         _mint(msg.sender,_amount);
         emit Deposit(msg.sender, _pid, _amount);
@@ -292,6 +294,7 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         require(user.amount >= _amount, "withdraw: not good");
+        require(block.timestamp >= user.stakeEnd, "withdraw: too soon");
         updatePool(_pid);
 
         uint256 GOLDReward = user.amount.mul(pool.accGOLDPerShare).div(1e12).sub(user.rewargoldDebt);
