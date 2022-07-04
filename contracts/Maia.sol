@@ -157,6 +157,23 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
         }
     }
 
+    function updatePoolHelper(uint _pid) external view returns (uint) {
+        PoolInfo storage pool = poolInfo[_pid];
+        UserInfo storage user = userInfo[_pid][msg.sender];
+        
+        if (block.number <= pool.lastRewardBlock) {
+            return 0;
+        }
+        uint256 rewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase));
+
+        return rewardBalance;
+    }
+
+    function getTS(uint _pid) external view returns (uint) {
+        PoolInfo storage pool = poolInfo[_pid];
+        return pool.lpToken.balanceOf(address(this));
+    }
+
     // Update reward variables of the given pool to be up-to-date.
     function updatePool(uint256 _pid) public {
         PoolInfo storage pool = poolInfo[_pid];
@@ -197,19 +214,23 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
             pool.lpToken.transfer(msg.sender, GOLDReward);
             pool.lastGOLDRewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase));
         }
+        uint256 taxAdjustedAmount = _amount.sub(_amount.mul(4).div(100));
+
         pool.lpToken.transferFrom(address(msg.sender), address(this), _amount);
-        totalGOLDStaked = totalGOLDStaked.add(_amount);
-        user.amount = user.amount.add(_amount);
+        totalGOLDStaked = totalGOLDStaked.add(taxAdjustedAmount);
+        user.amount = user.amount.add(taxAdjustedAmount);
         user.rewargoldDebt = user.amount.mul(pool.accGOLDPerShare).div(1e12);
         user.stakeEnd = block.timestamp + 7 days;
-        _mint(msg.sender,_amount);
-        emit Deposit(msg.sender, _pid, _amount);
+        _mint(msg.sender,taxAdjustedAmount);
+        emit Deposit(msg.sender, _pid, taxAdjustedAmount);
     }
 
     function withdraw(uint256 _pid, uint256 _amount) public {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
-        require(user.amount >= _amount, "withdraw: not good");
+        uint256 taxAdjustedAmount = _amount - _amount.mul(4).div(100);
+
+        require(user.amount >= taxAdjustedAmount, "withdraw: not good");
         require(block.timestamp >= user.stakeEnd, "withdraw: too soon");
         updatePool(_pid);
 
@@ -217,12 +238,12 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
         if (GOLDReward > 0) pool.lpToken.transfer(msg.sender, GOLDReward);
         pool.lastGOLDRewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase));
 
-        user.amount = user.amount.sub(_amount);
-        totalGOLDStaked = totalGOLDStaked.sub(_amount);
+        user.amount = user.amount.sub(taxAdjustedAmount);
+        totalGOLDStaked = totalGOLDStaked.sub(taxAdjustedAmount);
         user.rewargoldDebt = user.amount.mul(pool.accGOLDPerShare).div(1e12);
-        pool.lpToken.transfer(address(msg.sender), _amount);
-        _burn(msg.sender,_amount);
-        emit Withdraw(msg.sender, _pid, _amount);
+        pool.lpToken.transfer(address(msg.sender), taxAdjustedAmount);
+        _burn(msg.sender,taxAdjustedAmount);
+        emit Withdraw(msg.sender, _pid, taxAdjustedAmount);
     }
 
     function getPool(uint256 _pid) external view returns (PoolInfo memory) {

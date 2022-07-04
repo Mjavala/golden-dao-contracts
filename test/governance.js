@@ -315,14 +315,14 @@ describe("GovernorBravo_Propose", function () {
       await time.advanceBlock();
       await this.gov.castVote(1, 1, { from: userAddress1 });
       const prop = await this.gov.proposals(1);
-      expect(prop.forVotes).to.be.bignumber.equal(new BN("900"));
+      expect(prop.forVotes).to.be.bignumber.equal(new BN("864"));
     });
 
     it("Caste Vote(False)", async function () {
       await time.advanceBlock();
       await this.gov.castVote(1, 0, { from: userAddress1 });
       const prop = await this.gov.proposals(1);
-      expect(prop.againstVotes).to.be.bignumber.equal(new BN("900"));
+      expect(prop.againstVotes).to.be.bignumber.equal(new BN("864"));
     });
 
     it("Caste Vote(Try to vote again)", async function () {

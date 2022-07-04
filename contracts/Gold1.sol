@@ -480,11 +480,9 @@ contract Gold1 is Context, IERC20, Ownable {
         if(!takeFee) {
             removeAllFee();
         } 
-        /* TODO bring back
         else {
             amount = _takeFees(sender, amount, isSell);
         }
-        */
 
         _transferStandard(sender, recipient, amount);
         
