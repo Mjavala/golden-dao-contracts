@@ -9,26 +9,8 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 
 contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDelegateStorageV2, GovernorBravoEvents {
-    /// @notice Address of Investee.
-    mapping (uint256 => address) public investeeDetails;
-    
-    /// @notice Next investee to support
-    uint256 public nextInvestee;
-
-    /// @notice Next investee to fund
-    uint256 public nextInvesteeFund;
-
-    /// @notice Treasury contract address
-    address public treasury;
-
     /// @notice The name of this contract
     string public constant name = "DAO Governor Bravo";
-
-    /// @notice The minimum setable proposal threshold
-    uint public constant MIN_PROPOSAL_THRESHOLD = 50000e18; // 50,000 Gold 1
-
-    /// @notice The maximum setable proposal threshold
-    uint public constant MAX_PROPOSAL_THRESHOLD = 6000000000000e18; //6000000000000 Gold 1
 
     /// @notice The minimum setable voting period
     uint public constant MIN_VOTING_PERIOD = 1; // About 24 hours
@@ -62,26 +44,21 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
       * @param maia_ The address of the maia token
       * @param votingPeriod_ The initial voting period
       * @param votingDelay_ The initial voting delay
-      * @param proposalThreshold_ The initial proposal threshold
       */
-    function initialize(address timelock_, address maia_, uint votingPeriod_, uint votingDelay_, uint proposalThreshold_, address treasury_, address valar_) public initializer{
+    function initialize(address timelock_, address maia_, uint votingPeriod_, uint votingDelay_, address valar_) public initializer{
         require(address(timelock) == address(0), "GovernorBravo::initialize: can only initialize once");
         require(timelock_ != address(0), "GovernorBravo::initialize: invalid timelock address");
         require(maia_ != address(0), "GovernorBravo::initialize: invalid maia address");
         require(valar_ != address(0), "GovernorBravo::initialize: invalid maia address");
         require(votingPeriod_ >= MIN_VOTING_PERIOD && votingPeriod_ <= MAX_VOTING_PERIOD, "GovernorBravo::initialize: invalid voting period");
         require(votingDelay_ >= MIN_VOTING_DELAY && votingDelay_ <= MAX_VOTING_DELAY, "GovernorBravo::initialize: invalid voting delay");
-        require(proposalThreshold_ >= MIN_PROPOSAL_THRESHOLD && proposalThreshold_ <= MAX_PROPOSAL_THRESHOLD, "GovernorBravo::initialize: invalid proposal threshold");
-        require(treasury_ != address(0), "GovernorBravo::initialize: invalid treasury address");
 
         timelock = TimelockInterface(timelock_);
         maia = maiaInterface(maia_);
         valar = IERC20(valar_);
         votingPeriod = votingPeriod_;
         votingDelay = votingDelay_;
-        proposalThreshold = proposalThreshold_;
         admin = timelock_;
-        treasury = treasury_;
     }
 
     /**
@@ -97,7 +74,6 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
         // Allow addresses above proposal threshold and whitelisted addresses to propose
         require(valar.balanceOf(msg.sender) > 0,"GovernorBravo::propose: only valar");
         require(targets.length == values.length && targets.length == signatures.length && targets.length == calldatas.length, "GovernorBravo::propose: proposal function information arity mismatch");
-        require(targets.length != 0, "GovernorBravo::propose: must provide actions");
         require(targets.length <= proposalMaxOperations, "GovernorBravo::propose: too many actions");
 
         uint latestProposalId = latestProposalIds[msg.sender];
@@ -163,6 +139,10 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
         require(state(proposalId) == ProposalState.Queued, "GovernorBravo::execute: proposal can only be executed if it is queued");
         Proposal storage proposal = proposals[proposalId];
         proposal.executed = true;
+        if (proposal.targets.length == 0) {
+            emit ProposalExecuted(proposalId);
+            return;
+        }
         for (uint i = 0; i < proposal.targets.length; i++) {
             timelock.executeTransaction{value:proposal.values[i]}(proposal.targets[i], proposal.values[i], proposal.signatures[i], proposal.calldatas[i], proposal.eta);
         }
@@ -320,32 +300,6 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
     }
 
     /**
-      * @notice Admin function for setting the new Investee
-      * @param _investee Investee address
-     */
-    function _setInvesteeDetails(address _investee) external {
-        require(msg.sender == admin, "GovernorBravo::_setInvesteeDetails: admin only");
-        require(_investee != address(0), "GovernorBravo::_setInvesteeDetails: zero address");
-        investeeDetails[nextInvestee] = _investee;
-        nextInvestee =add256(nextInvestee,1);
-
-        emit InvesteeSet(_investee,sub256(nextInvestee,1));
-    }
-
-    /**
-      * @notice Treasury function for funding the new Investee
-     */
-    function _fundInvestee() external returns(address){
-        require(msg.sender == treasury, "GovernorBravo::_fundInvestee: treasury only");
-        require(nextInvesteeFund <= nextInvestee, "GovernorBravo::_fundInvestee: No new investee");
-
-        nextInvesteeFund =add256(nextInvesteeFund,1);
-        emit InvesteeFunded(investeeDetails[sub256(nextInvesteeFund,1)],sub256(nextInvesteeFund,1));
-        return investeeDetails[sub256(nextInvesteeFund,1)];
-    }
-
-
-    /**
       * @notice Admin function for setting the voting period
       * @param newVotingPeriod new voting period, in blocks
       */
@@ -356,20 +310,6 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
         votingPeriod = newVotingPeriod;
 
         emit VotingPeriodSet(oldVotingPeriod, votingPeriod);
-    }
-
-    /**
-      * @notice Admin function for setting the proposal threshold
-      * @dev newProposalThreshold must be greater than the hardcoded min
-      * @param newProposalThreshold new proposal threshold
-      */
-    function _setProposalThreshold(uint newProposalThreshold) external {
-        require(msg.sender == admin, "GovernorBravo::_setProposalThreshold: admin only");
-        require(newProposalThreshold >= MIN_PROPOSAL_THRESHOLD && newProposalThreshold <= MAX_PROPOSAL_THRESHOLD, "GovernorBravo::_setProposalThreshold: invalid proposal threshold");
-        uint oldProposalThreshold = proposalThreshold;
-        proposalThreshold = newProposalThreshold;
-
-        emit ProposalThresholdSet(oldProposalThreshold, proposalThreshold);
     }
 
     /**

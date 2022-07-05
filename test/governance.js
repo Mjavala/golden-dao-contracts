@@ -105,8 +105,6 @@ describe("GovernorBravo_Propose", function () {
       this.maiaToken.address,
       17280,
       1,
-      "60000000000000000000000",
-      userAddress2,
       this.valar.address,
       { from: ownerAddress, gas: 8000000 }
     );
@@ -246,16 +244,6 @@ describe("GovernorBravo_Propose", function () {
             { from: ownerAddress, gas: 8000000 }
           ),
           "GovernorBravo::propose: proposal function information arity mismatch"
-        );
-      });
-
-      it("or if that length is zero or greater than Max Operations.", async function () {
-        await expectRevert(
-          this.gov.propose([], [], [], [], "do nothing", {
-            from: ownerAddress,
-            gas: 8000000,
-          }),
-          "GovernorBravo::propose: must provide actions"
         );
       });
 

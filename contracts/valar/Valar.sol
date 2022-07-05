@@ -8,11 +8,13 @@ contract Valar is ERC20, Ownable {
     constructor() ERC20("MyToken", "MTK") {}
 
     function mint(address to, uint256 amount) public onlyOwner {
+        require(amount == 1, "Can only mint one");
         _mint(to, amount);
 
     }
 
     function transfer(address to, address from, uint256 amount) public virtual override onlyOwner returns (bool) {
+        require(amount == 1, "Can only transfer one");
         _transfer(from, to, amount);
         return true;
     }

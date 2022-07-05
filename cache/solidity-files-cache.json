@@ -893,51 +893,6 @@
         "SafeCastUpgradeable"
       ]
     },
-    "/Users/elo/Code/golden-dao-contracts/contracts/treasury.sol": {
-      "lastModificationDate": 1656971325427,
-      "contentHash": "aaa331117c8c99fe830f9f846580ba71",
-      "sourceName": "contracts/treasury.sol",
-      "solcConfig": {
-        "version": "0.8.2",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol",
-        "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol",
-        "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol",
-        "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol",
-        "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol",
-        "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol",
-        "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol"
-      ],
-      "versionPragmas": [
-        "0.8.2"
-      ],
-      "artifacts": [
-        "IGovernance",
-        "IUniswapV2Router",
-        "Treasury"
-      ]
-    },
     "/Users/elo/Code/golden-dao-contracts/node_modules/@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol": {
       "lastModificationDate": 1656913801994,
       "contentHash": "2436dad8e2272a29f7fccfae4507870b",
@@ -1099,8 +1054,8 @@
       ]
     },
     "/Users/elo/Code/golden-dao-contracts/contracts/governance.sol": {
-      "lastModificationDate": 1656971325427,
-      "contentHash": "bd8fbf55ef93530c60f9be7bff9005df",
+      "lastModificationDate": 1657056046654,
+      "contentHash": "2f9aba201d45a60fa4f4065d1b6d001c",
       "sourceName": "contracts/governance.sol",
       "solcConfig": {
         "version": "0.8.2",
@@ -1179,43 +1134,8 @@
         "maiaInterface"
       ]
     },
-    "/Users/elo/Code/golden-dao-contracts/contracts/treasuryMockExchange.sol": {
-      "lastModificationDate": 1656283372600,
-      "contentHash": "0e79f6e6cea8be5b5e250340d590e352",
-      "sourceName": "contracts/treasuryMockExchange.sol",
-      "solcConfig": {
-        "version": "0.8.2",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "0.8.2"
-      ],
-      "artifacts": [
-        "UniswapV2RouterMock"
-      ]
-    },
     "/Users/elo/Code/golden-dao-contracts/contracts/valar/Context.sol": {
-      "lastModificationDate": 1656913754533,
+      "lastModificationDate": 1656971325427,
       "contentHash": "5f2c5c4b6af2dd4551027144797bc8be",
       "sourceName": "contracts/valar/Context.sol",
       "solcConfig": {
@@ -1250,7 +1170,7 @@
       ]
     },
     "/Users/elo/Code/golden-dao-contracts/contracts/valar/Ownable.sol": {
-      "lastModificationDate": 1656913754534,
+      "lastModificationDate": 1656971325428,
       "contentHash": "61ce03690eb7b8a0d87763f289f105e8",
       "sourceName": "contracts/valar/Ownable.sol",
       "solcConfig": {
@@ -1287,8 +1207,8 @@
       ]
     },
     "/Users/elo/Code/golden-dao-contracts/contracts/valar/Valar.sol": {
-      "lastModificationDate": 1656914351334,
-      "contentHash": "66d3caec0c19395d0dcb94d1a28894c9",
+      "lastModificationDate": 1656978825950,
+      "contentHash": "743380b55b5b45f868e85dd383a92718",
       "sourceName": "contracts/valar/Valar.sol",
       "solcConfig": {
         "version": "0.8.4",
@@ -1325,7 +1245,7 @@
       ]
     },
     "/Users/elo/Code/golden-dao-contracts/contracts/valar/ERC20.sol": {
-      "lastModificationDate": 1656913754533,
+      "lastModificationDate": 1656971325428,
       "contentHash": "4b6a1fa6965c83626c38d4f6b682c210",
       "sourceName": "contracts/valar/ERC20.sol",
       "solcConfig": {
@@ -1364,7 +1284,7 @@
       ]
     },
     "/Users/elo/Code/golden-dao-contracts/contracts/valar/IERC20.sol": {
-      "lastModificationDate": 1656913754533,
+      "lastModificationDate": 1656971325428,
       "contentHash": "9ef07f6b11f8d2bf5a2bda013dfc8f61",
       "sourceName": "contracts/valar/IERC20.sol",
       "solcConfig": {
@@ -1399,7 +1319,7 @@
       ]
     },
     "/Users/elo/Code/golden-dao-contracts/contracts/valar/IERC20Metadata.sol": {
-      "lastModificationDate": 1656913754533,
+      "lastModificationDate": 1656971325428,
       "contentHash": "7d180a51f2ae3e249b0aaee46c94c996",
       "sourceName": "contracts/valar/IERC20Metadata.sol",
       "solcConfig": {
