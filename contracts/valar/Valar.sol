@@ -5,10 +5,9 @@ import "./ERC20.sol";
 import "./Ownable.sol";
 
 contract Valar is ERC20, Ownable {
-    constructor() ERC20("MyToken", "MTK") {}
+    constructor() ERC20("Valar", "Valar") {}
 
     function mint(address to, uint256 amount) public onlyOwner {
-        require(amount == 1, "Can only mint one");
         _mint(to, amount);
 
     }

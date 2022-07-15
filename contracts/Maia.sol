@@ -85,6 +85,8 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
     uint256 public totalGOLDStaked;
     // total GOLD used for purchase land
     uint256 public totalGOLDUsedForPurchase;
+    // withdrawal delay
+    uint256 public withdrawDelay = 7 days;
 
     event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
     event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
@@ -95,21 +97,23 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
         address _GOLD,
         address _Valar,
         address _adminAddress,
-        uint256 _startBlock,
-        uint256 _topStakerNumber
+        uint256 _startBlock
         ) public initializer {
         require(_adminAddress != address(0), "initialize: Zero address");
         OwnableUpgradeable.__Ownable_init();
-        __ERC20_init_unchained("gold", "gold");
+        __ERC20_init_unchained("Maia", "Maia");
         __Pausable_init_unchained();
-        ERC20PermitUpgradeable.__ERC20Permit_init("gold");
+        ERC20PermitUpgradeable.__ERC20Permit_init("Maia");
         ERC20VotesUpgradeable.__ERC20Votes_init_unchained();
         GOLD = IERC20(_GOLD);
         Valar = IERC20(_Valar);
         adminAddress = _adminAddress;
         startBlock = _startBlock;
-        topStakerNumber = _topStakerNumber;
     }
+
+	function decimals() public pure override returns (uint8) {
+		return 9;
+	}
 
     function poolLength() external view returns (uint256) {
         return poolInfo.length;
@@ -132,19 +136,16 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
             lastGOLDRewardBalance: 0,
             totalGOLDReward: 0
         }));
-        /**
-            struct ValarPoolInfo {
-                uint256 lastGOLDRewardBalance;
-                uint256 totalGOLDReward;
-                uint256 totalValar;
-            }
-         */
          valarPoolInfo.push(ValarPoolInfo({
              lastGOLDRewardBalance: 0,
              totalGOLDReward: 0,
              totalValar: 0
          }));
 
+    }
+
+    function setWithdrawDelay(uint256 _delay) external onlyOwner {
+        withdrawDelay = _delay;
     }
 
     // Update the given pool's GOLD allocation point. Can only be called by the owner.
@@ -179,7 +180,7 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
             uint256 rewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase)).mul(90).div(100);
             uint256 _totalReward = rewardBalance.sub(pool.lastGOLDRewardBalance);
             accGOLDPerShare = accGOLDPerShare.add(_totalReward.mul(1e12).div(lpSupply));
-            if (Valar.balanceOf(_user) > 0) {
+            if (Valar.balanceOf(_user) > 0 && vpool.totalValar > 0) {
                 uint256 rewardPerVala = vpool.totalGOLDReward.div(vpool.totalValar);
 
                 valarReward = rewardPerVala.sub(vala.rewardDebt);
@@ -198,7 +199,6 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
 
     function updatePoolHelper(uint _pid) external view returns (uint) {
         PoolInfo storage pool = poolInfo[_pid];
-        UserInfo storage user = userInfo[_pid][msg.sender];
         
         if (block.number <= pool.lastRewardBlock) {
             return 0;
@@ -255,13 +255,14 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
         PoolInfo storage pool = poolInfo[_pid];
         ValarPoolInfo storage vpool = valarPoolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
-        ValarUserInfo storage vala = valarUserInfo[_pid][msg.sender];
 
         updatePool(_pid);
         if (user.amount > 0) {
-            uint256 valarRewrds = valarRewards(_pid, msg.sender);
+            uint256 vR = valarRewards(_pid, msg.sender);
             uint256 GOLDReward = user.amount.mul(pool.accGOLDPerShare).div(1e12).sub(user.rewargoldDebt);
-            pool.lpToken.transfer(msg.sender, GOLDReward.add(valarRewrds));
+            if (GOLDReward > 0 || vR > 0) {
+                pool.lpToken.transfer(msg.sender, GOLDReward.add(vR));
+            }
             pool.lastGOLDRewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase)).mul(90).div(100);
             vpool.lastGOLDRewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase)).mul(10).div(100);
         }
@@ -271,7 +272,7 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
         totalGOLDStaked = totalGOLDStaked.add(taxAdjustedAmount);
         user.amount = user.amount.add(taxAdjustedAmount);
         user.rewargoldDebt = user.amount.mul(pool.accGOLDPerShare).div(1e12);
-        user.stakeEnd = block.timestamp + 7 days;
+        user.stakeEnd = block.timestamp + withdrawDelay;
         _mint(msg.sender,taxAdjustedAmount);
         emit Deposit(msg.sender, _pid, taxAdjustedAmount);
     }
@@ -284,11 +285,7 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
         PoolInfo storage pool = poolInfo[_pid];
         ValarPoolInfo storage vpool = valarPoolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
-        ValarUserInfo storage vala = valarUserInfo[_pid][msg.sender];
 
-        uint256 taxAdjustedAmount = _amount - _amount.mul(4).div(100);
-
-        require(user.amount >= taxAdjustedAmount, "withdraw: not good");
         require(block.timestamp >= user.stakeEnd, "withdraw: too soon");
         updatePool(_pid);
 
@@ -298,12 +295,12 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
         pool.lastGOLDRewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase)).mul(90).div(100);
         vpool.lastGOLDRewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase)).mul(10).div(100);
 
-        user.amount = user.amount.sub(taxAdjustedAmount);
-        totalGOLDStaked = totalGOLDStaked.sub(taxAdjustedAmount);
+        user.amount = user.amount.sub(_amount);
+        totalGOLDStaked = totalGOLDStaked.sub(_amount);
         user.rewargoldDebt = user.amount.mul(pool.accGOLDPerShare).div(1e12);
-        pool.lpToken.transfer(address(msg.sender), taxAdjustedAmount);
-        _burn(msg.sender,taxAdjustedAmount);
-        emit Withdraw(msg.sender, _pid, taxAdjustedAmount);
+        pool.lpToken.transfer(address(msg.sender), _amount);
+        _burn(msg.sender,_amount);
+        emit Withdraw(msg.sender, _pid, _amount);
     }
 
     function getPool(uint256 _pid) external view returns (PoolInfo memory) {
@@ -335,7 +332,6 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
         PoolInfo storage pool = poolInfo[_pid];
         ValarPoolInfo storage vpool = valarPoolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
-        ValarUserInfo storage vala = valarUserInfo[_pid][msg.sender];
 
         updatePool(_pid);
         
@@ -346,6 +342,7 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
         vpool.lastGOLDRewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase)).mul(10).div(100);
 
         user.rewargoldDebt = user.amount.mul(pool.accGOLDPerShare).div(1e12);
+        
     }
     
     // Safe GOLD transfer function to admin.
@@ -413,7 +410,5 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
     function _authorizeUpgrade(address) internal view override {
         require(owner() == msg.sender, "Only owner can upgrade implementation");
     }
-
-
 
 }

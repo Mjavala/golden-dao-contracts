@@ -931,8 +931,8 @@
       ]
     },
     "/Users/elo/Code/golden-dao-contracts/contracts/Maia.sol": {
-      "lastModificationDate": 1656978068781,
-      "contentHash": "bfc2603cb3e4fb8e293a20ba0254f639",
+      "lastModificationDate": 1657926624798,
+      "contentHash": "0cfd4171b4c06fd390036aa48e9dc88e",
       "sourceName": "contracts/Maia.sol",
       "solcConfig": {
         "version": "0.8.2",
@@ -1054,8 +1054,8 @@
       ]
     },
     "/Users/elo/Code/golden-dao-contracts/contracts/governance.sol": {
-      "lastModificationDate": 1657056046654,
-      "contentHash": "2f9aba201d45a60fa4f4065d1b6d001c",
+      "lastModificationDate": 1657791472269,
+      "contentHash": "ab2f95d201e5aabe69456d6c15bf59bf",
       "sourceName": "contracts/governance.sol",
       "solcConfig": {
         "version": "0.8.2",
@@ -1207,8 +1207,8 @@
       ]
     },
     "/Users/elo/Code/golden-dao-contracts/contracts/valar/Valar.sol": {
-      "lastModificationDate": 1656978825950,
-      "contentHash": "743380b55b5b45f868e85dd383a92718",
+      "lastModificationDate": 1657830277456,
+      "contentHash": "661459e90d724506b90ba10bd646a07c",
       "sourceName": "contracts/valar/Valar.sol",
       "solcConfig": {
         "version": "0.8.4",
@@ -1499,6 +1499,47 @@
       ],
       "artifacts": [
         "Context"
+      ]
+    },
+    "/Users/elo/Code/golden-dao-contracts/contracts/Gold1Live.sol": {
+      "lastModificationDate": 1657416576873,
+      "contentHash": "4d45ab62d871d596a63c796c93bcd068",
+      "sourceName": "contracts/Gold1Live.sol",
+      "solcConfig": {
+        "version": "0.8.4",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.4"
+      ],
+      "artifacts": [
+        "Context",
+        "Gold1",
+        "IERC20",
+        "IUniswapV2Factory",
+        "IUniswapV2Router02",
+        "Ownable",
+        "SafeMath"
       ]
     }
   }
