@@ -15,7 +15,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUpgradeable, ERC20VotesUpgradeable, OwnableUpgradeable, PausableUpgradeable {
     using SafeMathUpgradeable for uint256;
-    IERC20 public gold;
 
     // Info of each user.
     struct UserInfo {
