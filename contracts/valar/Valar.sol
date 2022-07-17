@@ -12,6 +12,10 @@ contract Valar is ERC20, Ownable {
 
     }
 
+	function decimals() public pure override returns (uint8) {
+		return 0;
+	}
+
     function transfer(address to, address from, uint256 amount) public virtual override onlyOwner returns (bool) {
         require(amount == 1, "Can only transfer one");
         _transfer(from, to, amount);
