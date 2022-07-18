@@ -159,7 +159,7 @@ describe("maia contract", function () {
       await goldToken.connect(owner).transfer(maiaToken.address, 1000);
     });
     it("User pending should be correct", async function () {
-      expect(await maiaToken.pendingGOLD(0, addr1.address)).to.equal(1000);
+      expect(await maiaToken.pendingGOLD(0, addr1.address)).to.equal(999);
     });
     it("User can claim token", async function () {
       const beforeClaimBalance = await goldToken.balanceOf(addr1.address);
@@ -187,7 +187,7 @@ describe("maia contract", function () {
       await goldToken.connect(owner).transfer(addr1.address, 10);
       await goldToken.connect(addr1).approve(maiaToken.address, 10);
       await time.advanceBlock();
-      expect(await maiaToken.pendingGOLD(0, addr1.address)).to.equal(1000);
+      expect(await maiaToken.pendingGOLD(0, addr1.address)).to.equal(999);
       const beforeClaimBalance = await goldToken.balanceOf(addr1.address);
       expect(beforeClaimBalance).to.equal(10);
       await maiaToken.connect(addr1).deposit(0, 10);
@@ -208,10 +208,10 @@ describe("maia contract", function () {
       await goldToken.connect(owner).transfer(maiaToken.address, 1000);
     });
     it("User first pending should be correct", async function () {
-      expect(await maiaToken.pendingGOLD(0, addr1.address)).to.equal(550);
+      expect(await maiaToken.pendingGOLD(0, addr1.address)).to.equal(499);
     });
     it("User second pending should be correct", async function () {
-      expect(await maiaToken.pendingGOLD(0, addr2.address)).to.equal(450);
+      expect(await maiaToken.pendingGOLD(0, addr2.address)).to.equal("499");
     });
     it("User first should claim half Reward", async function () {
       const beforeClaimBalance = await goldToken.balanceOf(addr1.address);
@@ -219,7 +219,7 @@ describe("maia contract", function () {
       await time.advanceBlock();
       await maiaToken.connect(addr1).claimGOLD(0);
       const afterClaimBalance = await goldToken.balanceOf(addr1.address);
-      expect(afterClaimBalance).to.equal(528);
+      expect(afterClaimBalance).to.equal(480);
     });
     it("User second should claim half Reward", async function () {
       const beforeClaimBalance = await goldToken.balanceOf(addr2.address);
@@ -240,12 +240,12 @@ describe("maia contract", function () {
       expect(beforeClaimBalance).to.equal(0);
       await maiaToken.connect(addr1).claimGOLD(0);
       const afterClaimBalance = await goldToken.balanceOf(addr2.address);
-      expect(afterClaimBalance).to.equal(432);
+      expect(afterClaimBalance).to.equal(480);
     });
 
     it("Second cannot claim after withdrawal", async function () {
-      expect(await maiaToken.pendingGOLD(0, addr1.address)).to.equal(550);
-      expect(await maiaToken.pendingGOLD(0, addr2.address)).to.equal(450);
+      expect(await maiaToken.pendingGOLD(0, addr1.address)).to.equal(499);
+      expect(await maiaToken.pendingGOLD(0, addr2.address)).to.equal(449);
       const beforeClaimBalance = await goldToken.balanceOf(addr2.address);
       expect(beforeClaimBalance).to.equal(0);
 
@@ -277,8 +277,8 @@ describe("maia contract", function () {
       await maiaToken.connect(addrs[0]).deposit(0, 2000);
       expect(await maiaToken.pendingGOLD(0, addrs[0].address)).to.equal(0);
       await goldToken.connect(owner).transfer(maiaToken.address, 2000);
-      expect(await maiaToken.pendingGOLD(0, addr1.address)).to.equal(1100);
-      expect(await maiaToken.pendingGOLD(0, addr2.address)).to.equal(900);
+      expect(await maiaToken.pendingGOLD(0, addr1.address)).to.equal(999);
+      expect(await maiaToken.pendingGOLD(0, addr2.address)).to.equal(988);
       expect(await maiaToken.pendingGOLD(0, addrs[0].address)).to.equal(900);
 
       const beforeClaimBalance = await goldToken.balanceOf(addrs[0].address);
