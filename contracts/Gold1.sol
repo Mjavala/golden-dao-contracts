@@ -115,7 +115,7 @@ interface IUniswapV2Router02 {
     ) external payable returns (uint amountToken, uint amountETH, uint liquidity);
 }
 
-contract Gold1 is Context, IERC20, Ownable {
+contract Gold1Mock is Context, IERC20, Ownable {
     using SafeMath for uint256;
     mapping (address => uint256) private _rOwned;
     mapping (address => mapping (address => uint256)) private _allowances;

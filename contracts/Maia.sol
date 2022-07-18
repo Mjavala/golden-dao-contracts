@@ -85,7 +85,7 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
     // total GOLD used for purchase land
     uint256 public totalGOLDUsedForPurchase;
     // withdrawal delay
-    uint256 public withdrawDelay = 7 days;
+    uint256 public withdrawDelay;
 
     event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
     event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
@@ -108,6 +108,7 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
         Valar = IERC20(_Valar);
         adminAddress = _adminAddress;
         startBlock = _startBlock;
+        withdrawDelay = 0;
     }
 
 	function decimals() public pure override returns (uint8) {
@@ -168,24 +169,23 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
     // View function to see pending GOLDs on frontend.
     function pendingGOLD(uint256 _pid, address _user) external view returns (uint256) {
         PoolInfo storage pool = poolInfo[_pid];
-        ValarPoolInfo storage vpool = valarPoolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_user];
-        ValarUserInfo storage vala = valarUserInfo[_pid][_user];
 
         uint256 accGOLDPerShare = pool.accGOLDPerShare;
         uint256 lpSupply = totalGOLDStaked;
-        uint256 valarReward;
         if (block.number > pool.lastRewardBlock && lpSupply != 0) {
-            uint256 rewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase)).mul(90).div(100);
+            uint256 rewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase));
             uint256 _totalReward = rewardBalance.sub(pool.lastGOLDRewardBalance);
             accGOLDPerShare = accGOLDPerShare.add(_totalReward.mul(1e12).div(lpSupply));
-            if (Valar.balanceOf(_user) > 0 && vpool.totalValar > 0) {
-                uint256 rewardPerVala = vpool.totalGOLDReward.div(vpool.totalValar);
-
-                valarReward = rewardPerVala.sub(vala.rewardDebt);
-            }
         }
-        return user.amount.mul(accGOLDPerShare).div(1e12).sub(user.rewargoldDebt).add(valarReward);
+        uint256 reward = user.amount.mul(accGOLDPerShare).div(1e12).sub(user.rewargoldDebt);
+
+        if (Valar.balanceOf(_user) == 1) {
+            return reward;
+        }
+        else {
+            return reward.mul(90).div(100);
+        }
     }
 
     // Update reward variables for all pools. Be careful of gas spending!
@@ -210,25 +210,16 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
     // Update reward variables of the given pool to be up-to-date.
     function updatePool(uint256 _pid) public {
         PoolInfo storage pool = poolInfo[_pid];
-        ValarPoolInfo storage vpool = valarPoolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
-        ValarUserInfo storage vala = valarUserInfo[_pid][msg.sender];
 
         
         if (block.number <= pool.lastRewardBlock) {
             return;
         }
-        uint256 rewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase)).mul(90).div(100);
+        uint256 rewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase));
         uint256 _totalReward = pool.totalGOLDReward.add(rewardBalance.sub(pool.lastGOLDRewardBalance));
         pool.lastGOLDRewardBalance = rewardBalance;
         pool.totalGOLDReward = _totalReward;
-
-        uint256 valarRewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase)).mul(10).div(100);
-        uint256 _totalValarReward = vpool.totalGOLDReward.add(valarRewardBalance.sub(vpool.lastGOLDRewardBalance));
-        vpool.lastGOLDRewardBalance = valarRewardBalance;
-        vpool.totalGOLDReward = _totalValarReward;
-
-        vpool.totalValar = Valar.totalSupply();
         
         uint256 lpSupply = totalGOLDStaked;
         if (lpSupply == 0) {
@@ -238,9 +229,6 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
             user.rewargoldDebt = 0;
             pool.lastGOLDRewardBalance = 0;
             pool.totalGOLDReward = 0;
-            vpool.totalGOLDReward = 0;
-            vpool.lastGOLDRewardBalance = 0;
-            vala.rewardDebt = 0;
             return;
         }
         
@@ -252,19 +240,17 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
     // Deposit GOLD tokens to MasterChef.
     function deposit(uint256 _pid, uint256 _amount) public {
         PoolInfo storage pool = poolInfo[_pid];
-        ValarPoolInfo storage vpool = valarPoolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
 
         updatePool(_pid);
         if (user.amount > 0) {
-            uint256 vR = valarRewards(_pid, msg.sender);
             uint256 GOLDReward = user.amount.mul(pool.accGOLDPerShare).div(1e12).sub(user.rewargoldDebt);
-            if (GOLDReward > 0 || vR > 0) {
-                pool.lpToken.transfer(msg.sender, GOLDReward.add(vR));
+            if (GOLDReward > 0) {
+                pool.lpToken.transfer(msg.sender, GOLDReward);
             }
-            pool.lastGOLDRewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase)).mul(90).div(100);
-            vpool.lastGOLDRewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase)).mul(10).div(100);
+            pool.lastGOLDRewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase));
         }
+        
         uint256 taxAdjustedAmount = _amount.sub(_amount.mul(4).div(100));
 
         pool.lpToken.transferFrom(address(msg.sender), address(this), _amount);
@@ -276,23 +262,21 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
         emit Deposit(msg.sender, _pid, taxAdjustedAmount);
     }
 
-    function getVPOOL(uint _pid) external view returns(ValarPoolInfo memory) {
+    function getVPool(uint _pid) external view returns(ValarPoolInfo memory) {
         return valarPoolInfo[_pid];
     }
 
     function withdraw(uint256 _pid, uint256 _amount) public {
         PoolInfo storage pool = poolInfo[_pid];
-        ValarPoolInfo storage vpool = valarPoolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
 
         require(block.timestamp >= user.stakeEnd, "withdraw: too soon");
+        require(user.amount >= _amount, "withdraw: too little");
         updatePool(_pid);
 
-        uint256 valarRewrds = valarRewards(_pid, msg.sender);
         uint256 GOLDReward = user.amount.mul(pool.accGOLDPerShare).div(1e12).sub(user.rewargoldDebt);
-        if (GOLDReward > 0 || valarRewrds > 0) pool.lpToken.transfer(msg.sender, GOLDReward.add(valarRewrds));
-        pool.lastGOLDRewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase)).mul(90).div(100);
-        vpool.lastGOLDRewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase)).mul(10).div(100);
+        if (GOLDReward > 0) pool.lpToken.transfer(msg.sender, GOLDReward);
+        pool.lastGOLDRewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase));
 
         user.amount = user.amount.sub(_amount);
         totalGOLDStaked = totalGOLDStaked.sub(_amount);
@@ -309,39 +293,25 @@ contract Maia is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUp
     function getUser(uint256 _pid, address _user) external view returns (UserInfo memory) {
         return userInfo[_pid][_user]; 
     }
-
-    function valarRewards(uint256 _pid, address _user) public returns (uint256) {
-        if (Valar.balanceOf(_user) == 0) return 0;
-        ValarPoolInfo storage vpool = valarPoolInfo[_pid];
-        ValarUserInfo storage vala = valarUserInfo[_pid][msg.sender];
-
-        if (vpool.totalValar == 0) return 0;
-
-        uint256 rewardPerVala = vpool.totalGOLDReward.div(vpool.totalValar);
-
-        uint256 adjustedReward = rewardPerVala.sub(vala.rewardDebt);
-
-        vala.rewardDebt = adjustedReward;
-
-        return adjustedReward;
-    }
     
     // Earn GOLD tokens to MasterChef.
     function claimGOLD(uint256 _pid) public {
         PoolInfo storage pool = poolInfo[_pid];
-        ValarPoolInfo storage vpool = valarPoolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
 
         updatePool(_pid);
         
         uint256 GOLDReward = user.amount.mul(pool.accGOLDPerShare).div(1e12).sub(user.rewargoldDebt);
-        uint256 valarReward = valarRewards(_pid, msg.sender);
-        if (GOLDReward > 0 || valarReward > 0) pool.lpToken.transfer(msg.sender, GOLDReward.add(valarReward));
-        pool.lastGOLDRewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase)).mul(90).div(100);
-        vpool.lastGOLDRewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase)).mul(10).div(100);
+        if (GOLDReward > 0) {
+            if (Valar.balanceOf(msg.sender) == 1) {
+                pool.lpToken.transfer(msg.sender, GOLDReward);
+            } else {
+                pool.lpToken.transfer(msg.sender, GOLDReward.mul(90).div(100));
+            }
+        }
+        pool.lastGOLDRewardBalance = pool.lpToken.balanceOf(address(this)).sub(totalGOLDStaked.sub(totalGOLDUsedForPurchase));
 
-        user.rewargoldDebt = user.amount.mul(pool.accGOLDPerShare).div(1e12);
-        
+        user.rewargoldDebt = user.amount.mul(pool.accGOLDPerShare).div(1e12);   
     }
     
     // Safe GOLD transfer function to admin.

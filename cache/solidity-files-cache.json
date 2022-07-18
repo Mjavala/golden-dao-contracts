@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/elo/Code/golden-dao-contracts/contracts/Gold1.sol": {
-      "lastModificationDate": 1656923981166,
-      "contentHash": "fc54224e76aedcab4348b836a4792ad2",
+      "lastModificationDate": 1658076251521,
+      "contentHash": "0335c3e08337b20d18fdde1ebb885c42",
       "sourceName": "contracts/Gold1.sol",
       "solcConfig": {
         "version": "0.8.4",
@@ -34,7 +34,7 @@
       ],
       "artifacts": [
         "Context",
-        "Gold1",
+        "Gold1Mock",
         "IERC20",
         "IUniswapV2Factory",
         "IUniswapV2Router02",
@@ -931,8 +931,8 @@
       ]
     },
     "/Users/elo/Code/golden-dao-contracts/contracts/Maia.sol": {
-      "lastModificationDate": 1657926624798,
-      "contentHash": "0cfd4171b4c06fd390036aa48e9dc88e",
+      "lastModificationDate": 1658149937485,
+      "contentHash": "ff5a1cdb9fd7e157204e759b42a1c3d3",
       "sourceName": "contracts/Maia.sol",
       "solcConfig": {
         "version": "0.8.2",
@@ -1054,8 +1054,8 @@
       ]
     },
     "/Users/elo/Code/golden-dao-contracts/contracts/governance.sol": {
-      "lastModificationDate": 1657791472269,
-      "contentHash": "ab2f95d201e5aabe69456d6c15bf59bf",
+      "lastModificationDate": 1658098776440,
+      "contentHash": "369424b9fb5583c15e3f1a4733078ea7",
       "sourceName": "contracts/governance.sol",
       "solcConfig": {
         "version": "0.8.2",
@@ -1207,8 +1207,8 @@
       ]
     },
     "/Users/elo/Code/golden-dao-contracts/contracts/valar/Valar.sol": {
-      "lastModificationDate": 1657830277456,
-      "contentHash": "661459e90d724506b90ba10bd646a07c",
+      "lastModificationDate": 1658015975527,
+      "contentHash": "d8f9c5905d3ca260ccd2624e13c55a99",
       "sourceName": "contracts/valar/Valar.sol",
       "solcConfig": {
         "version": "0.8.4",

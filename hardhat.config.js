@@ -28,6 +28,13 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
  */
 module.exports = {
   solidity: {
+    networks: {
+      hardhat: {
+        accounts: {
+          count: 1000
+        }
+      }
+    },
     compilers: [
       {
         version: "0.8.2",

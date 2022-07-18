@@ -28,7 +28,6 @@ describe("maia contract", function () {
       valarToken.address,
       owner.address,
       startBlock,
-      2,
     ]);
     await maiaToken.deployed();
 
@@ -87,7 +86,7 @@ describe("maia contract", function () {
       await network.provider.send("evm_mine");
 
       await maiaToken.connect(owner).withdraw(0, 100);
-      expect(await maiaToken.getVotes(addr1.address)).to.equal(672);
+      expect(await maiaToken.getVotes(addr1.address)).to.equal(668);
     });
     it("Delegated user votes will reduce on withdraw ", async function () {
       await maiaToken.connect(owner).delegate(addr1.address);
@@ -96,7 +95,7 @@ describe("maia contract", function () {
       await network.provider.send("evm_mine");
 
       await maiaToken.connect(owner).withdraw(0, 100);
-      expect(await maiaToken.getVotes(addr1.address)).to.equal(672);
+      expect(await maiaToken.getVotes(addr1.address)).to.equal(668);
     });
   });
 
@@ -127,11 +126,13 @@ describe("maia contract", function () {
       await network.provider.send("evm_increaseTime", [604800]);
       await network.provider.send("evm_mine");
 
-      await maiaToken.connect(addr1).withdraw(0, 100);
-      expect(await maiaToken.balanceOf(addr1.address)).to.equal(864);
-      expect(await maiaToken.totalSupply()).to.equal(864);
+      await maiaToken.connect(addr1).withdraw(0, 960);
 
-      await maiaToken.connect(addr1).withdraw(0, 900);
+      expect(await goldToken.balanceOf(addr1.address)).to.equal(1882);
+      expect(await maiaToken.balanceOf(addr1.address)).to.equal(0);
+      expect(await maiaToken.totalSupply()).to.equal(0);
+
+      await expect(maiaToken.connect(addr1).withdraw(0, 900)).to.be.revertedWith("withdraw: too little");
       expect(await maiaToken.balanceOf(addr1.address)).to.equal(0);
       expect(await maiaToken.totalSupply()).to.equal(0);
     });
@@ -158,7 +159,7 @@ describe("maia contract", function () {
       await goldToken.connect(owner).transfer(maiaToken.address, 1000);
     });
     it("User pending should be correct", async function () {
-      expect(await maiaToken.pendingGOLD(0, addr1.address)).to.equal(900);
+      expect(await maiaToken.pendingGOLD(0, addr1.address)).to.equal(1000);
     });
     it("User can claim token", async function () {
       const beforeClaimBalance = await goldToken.balanceOf(addr1.address);
@@ -186,7 +187,7 @@ describe("maia contract", function () {
       await goldToken.connect(owner).transfer(addr1.address, 10);
       await goldToken.connect(addr1).approve(maiaToken.address, 10);
       await time.advanceBlock();
-      expect(await maiaToken.pendingGOLD(0, addr1.address)).to.equal(900);
+      expect(await maiaToken.pendingGOLD(0, addr1.address)).to.equal(1000);
       const beforeClaimBalance = await goldToken.balanceOf(addr1.address);
       expect(beforeClaimBalance).to.equal(10);
       await maiaToken.connect(addr1).deposit(0, 10);
@@ -207,7 +208,7 @@ describe("maia contract", function () {
       await goldToken.connect(owner).transfer(maiaToken.address, 1000);
     });
     it("User first pending should be correct", async function () {
-      expect(await maiaToken.pendingGOLD(0, addr1.address)).to.equal(450);
+      expect(await maiaToken.pendingGOLD(0, addr1.address)).to.equal(550);
     });
     it("User second pending should be correct", async function () {
       expect(await maiaToken.pendingGOLD(0, addr2.address)).to.equal(450);
@@ -243,6 +244,7 @@ describe("maia contract", function () {
     });
 
     it("Second cannot claim after withdrawal", async function () {
+      expect(await maiaToken.pendingGOLD(0, addr1.address)).to.equal(550);
       expect(await maiaToken.pendingGOLD(0, addr2.address)).to.equal(450);
       const beforeClaimBalance = await goldToken.balanceOf(addr2.address);
       expect(beforeClaimBalance).to.equal(0);
@@ -250,16 +252,17 @@ describe("maia contract", function () {
       await network.provider.send("evm_increaseTime", [604800]);
       await network.provider.send("evm_mine");
 
-      await maiaToken.connect(addr2).withdraw(0, 1000);
+      await maiaToken.connect(addr2).withdraw(0, 960);
       const afterClaimBalance = await goldToken.balanceOf(addr2.address);
       expect(afterClaimBalance).to.equal(1354);
       expect(await maiaToken.pendingGOLD(0, addr2.address)).to.equal(0);
-      expect(await maiaToken.pendingGOLD(0, addr1.address)).to.equal(550);
+      expect(await maiaToken.pendingGOLD(0, addr1.address)).to.equal(450);
+
       await goldToken.connect(owner).transfer(maiaToken.address, 1000);
       expect(await maiaToken.pendingGOLD(0, addr2.address)).to.equal(0);
       expect(await maiaToken.pendingGOLD(0, addr1.address)).to.equal(1450);
       await maiaToken.connect(addr1).claimGOLD(0);
-      expect(await goldToken.balanceOf(addr1.address)).to.equal(1488);
+      expect(await goldToken.balanceOf(addr1.address)).to.equal(1445);
       await maiaToken.connect(addr2).claimGOLD(0);
       expect(await goldToken.balanceOf(addr2.address)).to.equal(1354);
     });
@@ -274,7 +277,7 @@ describe("maia contract", function () {
       await maiaToken.connect(addrs[0]).deposit(0, 2000);
       expect(await maiaToken.pendingGOLD(0, addrs[0].address)).to.equal(0);
       await goldToken.connect(owner).transfer(maiaToken.address, 2000);
-      expect(await maiaToken.pendingGOLD(0, addr1.address)).to.equal(1000);
+      expect(await maiaToken.pendingGOLD(0, addr1.address)).to.equal(1100);
       expect(await maiaToken.pendingGOLD(0, addr2.address)).to.equal(900);
       expect(await maiaToken.pendingGOLD(0, addrs[0].address)).to.equal(900);
 
@@ -287,7 +290,7 @@ describe("maia contract", function () {
       await network.provider.send("evm_increaseTime", [604800]);
       await network.provider.send("evm_mine");
       
-      await maiaToken.connect(addrs[0]).withdraw(0, 1000);
+      await maiaToken.connect(addrs[0]).withdraw(0, 960);
       await goldToken.connect(owner).transfer(maiaToken.address, 3000);
       expect(await maiaToken.pendingGOLD(0, addr1.address)).to.equal(2100);
       expect(await maiaToken.pendingGOLD(0, addr2.address)).to.equal(1800);

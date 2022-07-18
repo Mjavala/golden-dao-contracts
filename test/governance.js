@@ -53,7 +53,6 @@ describe("GovernorBravo_Propose", function () {
       this.valar.address,
       ownerAddress,
       startBlock,
-      1,
       {
         from: ownerAddress,
         gas: 8000000,
