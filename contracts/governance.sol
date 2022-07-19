@@ -323,24 +323,24 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
      * @param expiration Expiration for account whitelist status as timestamp (if now < expiration, whitelisted)
      */
     function _setWhitelistAccountExpiration(address account, uint expiration) external {
-        require(msg.sender == admin || msg.sender == whitelistGuardian, "GovernorBravo::_setWhitelistAccountExpiration: admin only");
+        require(msg.sender == admin || msg.sender == whitelistValar, "GovernorBravo::_setWhitelistAccountExpiration: admin only");
         whitelistAccountExpirations[account] = expiration;
 
         emit WhitelistAccountExpirationSet(account, expiration);
     }
 
     /**
-     * @notice Admin function for setting the whitelistGuardian. WhitelistGuardian can cancel proposals from whitelisted addresses
-     * @param account Account to set whitelistGuardian to (0x0 to remove whitelistGuardian)
+     * @notice Admin function for setting the whitelistValar. WhitelistValar can cancel proposals from whitelisted addresses
+     * @param account Account to set whitelistValar to (0x0 to remove whitelistValar)
      */
-     function _setWhitelistGuardian(address account) external {
+     function _setWhitelistValarn(address account) external {
         // Check address is not zero
-        require(account != address(0), "GovernorBravo:_setWhitelistGuardian: zero address");
-        require(msg.sender == admin, "GovernorBravo::_setWhitelistGuardian: admin only");
-        address oldGuardian = whitelistGuardian;
-        whitelistGuardian = account;
+        require(account != address(0), "GovernorBravo:_setWhitelistValar: zero address");
+        require(msg.sender == admin, "GovernorBravo::_setWhitelistValar: admin only");
+        address oldValar = whitelistValar;
+        whitelistValar = account;
 
-        emit WhitelistGuardianSet(oldGuardian, whitelistGuardian);
+        emit WhitelistValarSet(oldValar, whitelistValar);
      }
 
     /**
