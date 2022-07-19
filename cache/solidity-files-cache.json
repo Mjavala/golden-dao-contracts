@@ -1054,8 +1054,8 @@
       ]
     },
     "/Users/elo/Code/golden-dao-contracts/contracts/governance.sol": {
-      "lastModificationDate": 1658098776440,
-      "contentHash": "369424b9fb5583c15e3f1a4733078ea7",
+      "lastModificationDate": 1658259310224,
+      "contentHash": "829a729b774af1eae62f8e5587ad9c06",
       "sourceName": "contracts/governance.sol",
       "solcConfig": {
         "version": "0.8.2",
@@ -1094,8 +1094,8 @@
       ]
     },
     "/Users/elo/Code/golden-dao-contracts/contracts/GovernorBravoInterfaces.sol": {
-      "lastModificationDate": 1656971325426,
-      "contentHash": "45d089f4696f7ba5384fb88196d9da1f",
+      "lastModificationDate": 1658259416975,
+      "contentHash": "62aec9acfae656ce93e7884478e029f4",
       "sourceName": "contracts/GovernorBravoInterfaces.sol",
       "solcConfig": {
         "version": "0.8.2",

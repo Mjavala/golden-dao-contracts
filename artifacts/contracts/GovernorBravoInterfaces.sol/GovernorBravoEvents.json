@@ -336,22 +336,22 @@
         {
           "indexed": false,
           "internalType": "address",
-          "name": "oldGuardian",
+          "name": "oldValar",
           "type": "address"
         },
         {
           "indexed": false,
           "internalType": "address",
-          "name": "newGuardian",
+          "name": "newValar",
           "type": "address"
         }
       ],
-      "name": "WhitelistGuardianSet",
+      "name": "WhitelistValarSet",
       "type": "event"
     }
   ],
-  "bytecode": "0x6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea2646970667358221220447d381021ac416a30792eddd344b111b91e2388488a9a9bc8dda299b7f68e0064736f6c63430008020033",
-  "deployedBytecode": "0x6080604052600080fdfea2646970667358221220447d381021ac416a30792eddd344b111b91e2388488a9a9bc8dda299b7f68e0064736f6c63430008020033",
+  "bytecode": "0x6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea2646970667358221220b01f0025c9222a5c264efa9e6fea2b0243376a8b6f9e97553d684124dfd3e02c64736f6c63430008020033",
+  "deployedBytecode": "0x6080604052600080fdfea2646970667358221220b01f0025c9222a5c264efa9e6fea2b0243376a8b6f9e97553d684124dfd3e02c64736f6c63430008020033",
   "linkReferences": {},
   "deployedLinkReferences": {}
 }
